@@ -1,0 +1,25 @@
+{
+    "version": 1,
+    "author": "Caio Bruno",
+    "editor": "wokwi",
+    "parts": [
+      { "type": "board-pi-pico-w", "id": "pico", "top": 0, "left": 0, "attrs": {} },
+      {
+        "type": "board-ssd1306",
+        "id": "oled1",
+        "top": 214.34,
+        "left": -153.37,
+        "attrs": { "i2cAddress": "0x3c" }
+      },
+      { "type": "wokwi-vcc", "id": "vcc1", "top": 144.76, "left": -163.2, "attrs": {} }
+    ],
+    "connections": [
+      [ "pico:GP0", "$serialMonitor:RX", "", [] ],
+      [ "pico:GP1", "$serialMonitor:TX", "", [] ],
+      [ "pico:GP14", "oled1:SDA", "green", [ "h0" ] ],
+      [ "pico:GP15", "oled1:SCL", "blue", [ "h-15.65", "v-3.21", "h-86.7" ] ],
+      [ "pico:GND.4", "oled1:GND", "black", [ "h0" ] ],
+      [ "oled1:VCC", "vcc1:VCC", "red", [ "v-19.2", "h-47.85", "v-28.8" ] ]
+    ],
+    "dependencies": {}
+  }

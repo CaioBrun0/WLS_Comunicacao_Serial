@@ -4,20 +4,32 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
+#include <ctype.h>
 #include "ws2818b.pio.h"
+#include "inc/ssd1306.h"
 #include <stdio.h>
 
-const uint32_t LED_PIN = 7;
+//Define os leds e os botões
 #define led_red 13
 #define led_green 11
 #define led_blue 12
 #define button_a 5
 #define button_b 6
 
-
+//Define os pinos da matriz
+const uint32_t LED_PIN = 7;
 #define DIGIT_SIZE 5
 #define LED_COUNT 25
 int number_matriz = 0;
+
+//Define os pinos do display
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define endereco 0x3C
+
+
+/* ===========================================(inicio) Funções para tratar da matriz de LED ===========================================*/
 
 // Matriz tridimensional para armazenar os números 0 a 9
 int digits[10][DIGIT_SIZE][DIGIT_SIZE][3] = {
@@ -190,7 +202,55 @@ void brightness(int matriz[5][5][3]){
 
 }
 
+void numberMatrix(char c){
+    switch (c)
+            {
+            case '0':
+                brightness(digits[0]);
+                break;
+            
+            case '1':
+                brightness(digits[1]);
+                break;
+            
+            case '2':
+                brightness(digits[2]);
+                break;
+            
+            case '3':
+                brightness(digits[3]);
+                break;
+            
+            case '4':
+                brightness(digits[4]);
+                break;
+            
+            case '5':
+                brightness(digits[5]);
+                break;
+            
+            case '6':
+                brightness(digits[6]);
+                break;
+            
+            case '7':
+                brightness(digits[7]);
+                break;
+            
+            case '8':
+                brightness(digits[8]);
+                break;
+            
+            case '9':
+                brightness(digits[9]);
+                break;
+            
+            default:
+                break;
+            }
+}
 
+/* ===========================================(Fim) Funções para tratar da matriz de LED ===========================================*/
 
 
 
@@ -215,12 +275,45 @@ int main()
 
     npInit(LED_PIN);
 
+    // I2C Initialisation. Using it at 400Khz.
+    i2c_init(I2C_PORT, 400 * 1000);
+
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Set the GPIO pin function to I2C
+    gpio_pull_up(I2C_SDA); // Pull up the data line
+    gpio_pull_up(I2C_SCL); // Pull up the clock line
+    ssd1306_t ssd; // Inicializa a estrutura do display
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT); // Inicializa o display
+    ssd1306_config(&ssd); // Configura o display
+    ssd1306_send_data(&ssd); // Envia os dados para o display
+
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+
+
+    bool cor = true;
+
     while (true) {
         if (stdio_usb_connected()) {
-            printf("Digite um caractere: ");
             char c = getchar();  // Lê o caractere digitado
-            printf("Você digitou: %c\n", c);
+
+            if(isdigit(c)){
+                numberMatrix(c);
+            }
+            
+            ssd1306_draw_char(&ssd, c, 30, 30); // Desenha o caractere no display
+            ssd1306_send_data(&ssd); // Atualiza o display
+
+
+
         }
+
+        cor = !cor;
+        // Atualiza o conteúdo do display com animações
+        ssd1306_fill(&ssd, !cor); // Limpa o display
+        ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+        ssd1306_send_data(&ssd); // Atualiza o display
         sleep_ms(1000);
     }
 }
