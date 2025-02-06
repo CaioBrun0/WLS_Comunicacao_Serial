@@ -216,7 +216,11 @@ int main()
     npInit(LED_PIN);
 
     while (true) {
-        printf("Hello, world!\n");
+        if (stdio_usb_connected()) {
+            printf("Digite um caractere: ");
+            char c = getchar();  // Lê o caractere digitado
+            printf("Você digitou: %c\n", c);
+        }
         sleep_ms(1000);
     }
 }

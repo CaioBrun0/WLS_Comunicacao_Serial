@@ -35,13 +35,13 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Comunicacao-serial Comunicacao-serial.c )
+add_executable(Comunicacao-serial Comunicacao-serial.c inc/ssd1306.c)
 
 pico_set_program_name(Comunicacao-serial "Comunicacao-serial")
 pico_set_program_version(Comunicacao-serial "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Comunicacao-serial 1)
+pico_enable_stdio_uart(Comunicacao-serial 0)
 pico_enable_stdio_usb(Comunicacao-serial 1)
 
 pico_generate_pio_header(Comunicacao-serial ${CMAKE_CURRENT_LIST_DIR}/ws2818b.pio)
@@ -59,6 +59,7 @@ target_include_directories(Comunicacao-serial PRIVATE
 target_link_libraries(Comunicacao-serial 
         hardware_pio
         hardware_clocks
+        hardware_i2c
         )
 
 pico_add_extra_outputs(Comunicacao-serial)
