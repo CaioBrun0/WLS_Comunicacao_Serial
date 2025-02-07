@@ -60,6 +60,7 @@ target_link_libraries(Comunicacao-serial
         hardware_pio
         hardware_clocks
         hardware_i2c
+        hardware_uart
         )
 
 pico_add_extra_outputs(Comunicacao-serial)

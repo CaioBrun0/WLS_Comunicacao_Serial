@@ -30,8 +30,7 @@ int number_matriz = 0;
 #define endereco 0x3C
 
 //Variaveis para tratar os botões
-const uint32_t debounce_time_ms = 200;
-
+const uint32_t debounce_time_ms = 150;
 volatile bool button_a_pressed = false;
 volatile bool button_b_pressed = false;
 absolute_time_t last_interrupt_time = 0;
@@ -212,6 +211,8 @@ void brightness(int matriz[5][5][3]){
 
 }
 
+//Se o usuario digitar um numero, a função numberMatrix descobre qual é o numero
+//E manda escrever no matriz de leds
 void numberMatrix(char c){
     switch (c)
             {
@@ -276,12 +277,18 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
         button_b_pressed = true;
 }
 
+void buttonClicked(){
+    if(button_a_pressed){
+        
+    }
+}
 
 
 int main()
-{
+{   
     stdio_init_all();
 
+    //Inicialização dos pinoss
     gpio_init(led_red);
     gpio_set_dir(led_red, GPIO_OUT);
 
@@ -319,35 +326,41 @@ int main()
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
+    //Funções de callback
     gpio_set_irq_enabled_with_callback(button_a, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(button_b, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     bool cor = true;
 
-    
+    ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+    ssd1306_send_data(&ssd); // Atualiza o display
 
     while (true) {
-        printf("Está no inicio do While\n");
+        
         if (stdio_usb_connected()) {
+            int64_t timeout = 500000; 
+            char c = getchar_timeout_us(timeout); // Lê o caractere digitado com timeout
+            
+            if (c != PICO_ERROR_TIMEOUT){
+                if(isdigit(c)){numberMatrix(c);}
+                else{
+                    npClear();
+                    npWrite();
+                }
+                
+                ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+                ssd1306_draw_char(&ssd, c, 20, 30); // Desenha o caractere no display
+                ssd1306_send_data(&ssd); // Atualiza o display
 
-            printf("Esperando o caracter ser lido\n");
-            char c = getchar();  // Lê o caractere digitado
-            printf("Caractere lido: %c\n", c);
-            npClear();
-
-            if(isdigit(c)){
-                numberMatrix(c);
+            } else {
+                printf("Timeout ao ler caractere\n");
             }
             
-            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-            ssd1306_draw_char(&ssd, c, 20, 30); // Desenha o caractere no display
-            ssd1306_send_data(&ssd); // Atualiza o display
-            printf("Atualizou o OLED\n");
 
         }
 
+        //Quando o botão A é clicado
         if (button_a_pressed){
             button_a_pressed = false; 
-            printf("Botão A pressionado\n");
             led_state = gpio_get(led_green);
             gpio_put(led_green, !led_state);
 
@@ -355,19 +368,28 @@ int main()
             if(gpio_get(led_green) == true){
                 ssd1306_draw_string(&ssd, "LED   VERDE", 20, 10); // Desenha uma string
                 ssd1306_draw_string(&ssd, "ACESSO", 36, 30); // Desenha uma string
+                ssd1306_send_data(&ssd); // Atualiza o display
+                printf("Botão A pressionado: LED VERDE ACESSO\n");
+                printf("\n");
             } else {
                 ssd1306_draw_string(&ssd, "LED   VERDE", 20, 10); // Desenha uma string
                 ssd1306_draw_string(&ssd, "APAGADO", 33, 30); // Desenha uma string
+                ssd1306_send_data(&ssd); // Atualiza o display
+                printf("Botão A pressionado: LED VERDE APAGADO\n");
+                printf("\n");
             }
 
-            ssd1306_send_data(&ssd); // Atualiza o display
             sleep_ms(1000);
+            ssd1306_fill(&ssd, false);
+            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+            ssd1306_send_data(&ssd);
+            
 
 
         }
+        //Quando o botão B é clicado
         if (button_b_pressed){
             button_b_pressed = false;
-            printf("Botão B pressionado\n");
             led_state = gpio_get(led_blue);
             gpio_put(led_blue, !led_state);
 
@@ -375,21 +397,26 @@ int main()
             if(gpio_get(led_blue) == true){
                 ssd1306_draw_string(&ssd, "LED   AZUL", 20, 10); // Desenha uma string
                 ssd1306_draw_string(&ssd, "ACESSO", 33, 30); // Desenha uma string
+                ssd1306_send_data(&ssd); // Atualiza o display
+                printf("Botão B pressionado: LED AZUL ACESSO\n");
+                printf("\n");
 
             } else {
                 ssd1306_draw_string(&ssd, "LED   AZUL", 20, 10); // Desenha uma string
                 ssd1306_draw_string(&ssd, "APAGADO", 33, 30); // Desenha uma string
+                ssd1306_send_data(&ssd); // Atualiza o display
+                printf("Botão B pressionado: LED AZUL APAGADO\n");
+                printf("\n");
+
             }
 
-            ssd1306_send_data(&ssd); // Atualiza o display
             sleep_ms(1000);
+            ssd1306_fill(&ssd, false);
+            ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
+            ssd1306_send_data(&ssd);
             
         }
 
-        cor = !cor;
-        // Atualiza o conteúdo do display com animações
-        ssd1306_rect(&ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-        ssd1306_send_data(&ssd); // Atualiza o display
         sleep_ms(1000);
     }
 }
