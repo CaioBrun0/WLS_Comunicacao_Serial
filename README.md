@@ -48,3 +48,6 @@ O código faz uso das seguintes bibliotecas:
 2. Compile o código utilizando `cmake` e `make`.
 3. Carregue o binário para o Pico via USB.
 
+## Vídeo de exibição no YouTube
+https://youtu.be/xTJEHmuaJTs
+
